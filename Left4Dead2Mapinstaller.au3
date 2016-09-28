@@ -4,13 +4,11 @@
 #AutoIt3Wrapper_Add_Constants=n
 #AutoIt3Wrapper_Run_Tidy=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
-; *** Start added by AutoIt3Wrapper ***
-#include <FileConstants.au3>
-; *** End added by AutoIt3Wrapper ***
+
 #cs ----------------------------------------------------------------------------
 
 	AutoIt Version: 3.3.14.0
-	Author:         myName
+	Author:         Bacilic
 
 	Script Function:
 	Template AutoIt script.
@@ -23,19 +21,22 @@
 #include <GUIConstantsEx.au3>
 #include <StaticConstants.au3>
 #include <WindowsConstants.au3>
+#include <FileConstants.au3> ; added by AutoIt3Wrapper
 #include <GuiComboBox.au3> ; _GUICtrlComboBox_DeleteString,_GUICtrlComboBox_FindString
 #include <File.au3> ; _FileListToArray (Lists files and\or folders in a specified folder)
 
 Opt("GUIOnEventMode", 1)
 
-#Region ### START Koda GUI section ### Form=X:\Updates\AutoIt3\Scripts\Left4Dead 2 Map installer\form_Left4Dead2MapInstaller.kxf
+#Region ### START Koda GUI section ### Form= @ScriptDir\form_Left4Dead2MapInstaller.kxf
 $form_Left4Dead2MapInstaller = GUICreate("Left4Dead 2 Map Installer", 517, 476, 210, 135)
 $picture_MapPreview = GUICtrlCreatePic("", 8, 8, 497, 297)
-$label_MapDescription = GUICtrlCreateLabel("Για να μην πρίζεται το Θωμα!", 8, 352, 151, 17)
 $button_Previous = GUICtrlCreateButton("< Previous", 8, 312, 185, 25)
 $button_Next = GUICtrlCreateButton("Next >", 320, 312, 185, 25)
 $button_InstallMap = GUICtrlCreateButton("Install Map", 320, 440, 185, 25)
 $combo_SelectMap = GUICtrlCreateCombo("Select map... ή φωνάχτε το Θωμα!", 8, 440, 289, 25, BitOR($CBS_DROPDOWN, $CBS_AUTOHSCROLL))
+$label_MapDescription = GUICtrlCreateLabel("Για να μην πρίζεται το Θωμα!", 8, 352, 151, 17)
+$Label_CountPictures = GUICtrlCreateLabel("Pictures count", 208, 320, 96, 17)
+$label_MapsCount = GUICtrlCreateLabel("Number of Maps", 8, 419, 98, 17)
 $label_More = GUICtrlCreateLabel("More...", 464, 416, 37, 17)
 #EndRegion ### END Koda GUI section ###
 
@@ -80,14 +81,16 @@ Func _GUILeft4DeadMapInstaller()
 	GUICtrlSetOnEvent(-1, "On_Combo")
 
 	;Labels
-	$label_MapDescription = GUICtrlCreateLabel("Για να μην πρίζεται το Θωμα!", 8, 352, 501, 67)
+	$label_MapDescription = GUICtrlCreateLabel("Το Left4Dead2 Map Installer ήρθε εδώ για εσάς αλλά και για να βοηθήσει τον Τόμας να ηρεμήσει ψυχικά.", 8, 352, 501, 67)
+	$Label_CountPictures = GUICtrlCreateLabel("Pictures count", 208, 320, 96, 17)
+	$label_MapsCount = GUICtrlCreateLabel("Number of Maps", 8, 419, 98, 17)
 	$label_More = GUICtrlCreateLabel("More...", 464, 419, 37, 17)
 	GUICtrlSetCursor(-1, 0)
 	GUICtrlSetColor(-1, 0x0000FF)
 	GUICtrlSetOnEvent(-1, "On_Label")
 
 	;Picture
-	$picture_MapPreview = GUICtrlCreatePic("", 8, 8, 497, 297)
+	$picture_MapPreview = GUICtrlCreatePic(@ScriptDir & "\Thomas.jpg", 8, 8, 497, 297)
 
 	GUISetState() ;@SW_SHOW)
 	While 1
@@ -111,6 +114,7 @@ Func On_Button()
 			If $i <= $aMapPictures[0] Then ; If exist next picture
 				GUICtrlSetImage($picture_MapPreview, $sMapPicturesPath & $aMapPictures[$i])
 				GUICtrlSetState($button_Previous, $GUI_ENABLE) ; Enable Previous button
+				GUICtrlSetData($Label_CountPictures, $i & " of " & $aMapPictures[0])
 			Else
 				GUICtrlSetState($button_Next, $GUI_DISABLE)
 			EndIf
@@ -119,6 +123,7 @@ Func On_Button()
 			If $i >= 1 Then ; If exist previous picture
 				GUICtrlSetImage($picture_MapPreview, $sMapPicturesPath & $aMapPictures[$i])
 				GUICtrlSetState($button_Next, $GUI_ENABLE) ; Enable Next button
+				GUICtrlSetData($Label_CountPictures, $i & " of " & $aMapPictures[0])
 			Else
 				GUICtrlSetState($button_Previous, $GUI_DISABLE)
 			EndIf
@@ -144,18 +149,18 @@ Func On_Combo()
 			$aMapPictures = _FileListToArray($sMapPicturesPath, "*.jpg", $FLTA_FILES)
 			If @error = 1 Or @error = 4 Then
 				GUICtrlSetImage($picture_MapPreview, @ScriptDir & "\FileNotFound.jpg")
+				GUICtrlSetData($Label_CountPictures, "Νo map preview")
 			Else
 				If $aMapPictures[0] > 1 Then
 					GUICtrlSetState($button_Next, $GUI_ENABLE) ; Enable Next button if thare is more one picture
+					GUICtrlSetData($Label_CountPictures, "1 of " & $aMapPictures[0])
 					$i = 1 ; Set pointer to current picture
 				EndIf
 				GUICtrlSetImage($picture_MapPreview, $sMapPicturesPath & $aMapPictures[1])
-				ConsoleWrite("Pictures found: " & $aMapPictures[0] & @CRLF)
-				ConsoleWrite("Picture: " & $sMapPicturesPath & $aMapPictures[1] & @CRLF)
 			EndIf
 			$sMapDescription = IniRead(@ScriptDir & "\Maps.ini", $sMapNameValue, "Description", "") ; The Description of map
 			GUICtrlSetData($label_MapDescription, $sMapDescription) ; Udate map description
-			ConsoleWrite($sMapNameValue & @CRLF & $sMapPath & @CRLF & "Link: " & $sMapLink & @CRLF & $sMapPicturesPath & @CRLF & $sMapDescription & @CRLF)
+			GUICtrlSetData($label_MapsCount, "Maps: " & $aMapName[0][0]) ; Update number of maps
 	EndSwitch
 EndFunc   ;==>On_Combo
 
